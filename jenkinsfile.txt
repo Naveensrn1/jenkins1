@@ -1,0 +1,53 @@
+pipeline {
+    agent any
+    stages {
+        stage('checkout') {
+        steps {
+            //checkout java application source code from the github
+            'https://github.com/your-username/your-repo.git'
+            }
+        }
+        stahe('Quality check') {
+            steps {
+                //performanve quality check using sonarqube
+                sh 'sonar-scanar'
+            }cd
+        }
+        stage('build') {
+            steps {
+                //build java application
+                sh 'mvn clear install'
+            }
+        }
+        stage('docker image build'){
+            steps {
+                //build docker image for docker application
+                sh 'docker build -t my-java-app:latest'
+                //login docker registry using docker credentials
+                sh "docker login -u <docker-username> -p <docker-passwd>"
+                //push to docker image to registry
+                sh "docker push ${IMAGE_NAME}:${BUILD_NUMBER}"
+            }
+        }
+        stage('deploy') {
+            steps {
+                //deploy the java application to staging environment
+                sh 'kubectl apply -f deployment.yaml'
+            }
+        }
+        stage('testing') {
+            steps {
+                //run automated testing for java application
+                sh 'mvn test'
+            }
+        }
+    }
+    post {
+        success {
+            //notify success or perform addition actions
+        }
+        failure {
+            //notify failure or take corrective action
+        }
+    }
+}
